@@ -1,0 +1,290 @@
+/* =========================================================
+   SQL CASE STUDY – 2 (INTELLIPAAT)
+   Author : Akash P L
+   Database : SQL Server
+   ========================================================= */
+
+
+/* =========================================================
+   TABLE CREATION & DATA INSERTION
+   ========================================================= */
+
+-- LOCATION TABLE
+CREATE TABLE LOCATION (
+    Location_ID INT PRIMARY KEY,
+    City VARCHAR(50)
+);
+
+INSERT INTO LOCATION VALUES
+(122, 'New York'),
+(123, 'Dallas'),
+(124, 'Chicago'),
+(167, 'Boston');
+
+
+-- DEPARTMENT TABLE
+CREATE TABLE DEPARTMENT (
+    Department_ID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Location_ID INT,
+    FOREIGN KEY (Location_ID) REFERENCES LOCATION(Location_ID)
+);
+
+INSERT INTO DEPARTMENT VALUES
+(10, 'Accounting', 122),
+(20, 'Sales', 124),
+(30, 'Research', 123),
+(40, 'Operations', 167);
+
+
+-- JOB TABLE
+CREATE TABLE JOB (
+    Job_ID INT PRIMARY KEY,
+    Designation VARCHAR(50)
+);
+
+INSERT INTO JOB VALUES
+(667, 'Clerk'),
+(668, 'Staff'),
+(669, 'Analyst'),
+(670, 'Sales Person'),
+(671, 'Manager'),
+(672, 'President');
+
+
+-- EMPLOYEE TABLE
+CREATE TABLE EMPLOYEE (
+    Employee_ID INT PRIMARY KEY,
+    Last_Name VARCHAR(50),
+    First_Name VARCHAR(50),
+    Middle_Name CHAR(1),
+    Job_ID INT,
+    Hire_Date DATE,
+    Salary INT,
+    Comm INT,
+    Department_ID INT,
+    FOREIGN KEY (Job_ID) REFERENCES JOB(Job_ID),
+    FOREIGN KEY (Department_ID) REFERENCES DEPARTMENT(Department_ID)
+);
+
+INSERT INTO EMPLOYEE VALUES
+(7369, 'Smith', 'John', 'Q', 667, '1984-12-17', 800,  NULL, 20),
+(7499, 'Allen', 'Kevin', 'J', 670, '1985-02-20', 1600, 300, 30),
+(755,  'Doyle', 'Jean', 'K', 671, '1985-04-04', 2850, NULL, 30),
+(756,  'Dennis','Lynn', 'S', 671, '1985-05-15', 2750, NULL, 30),
+(757,  'Baker', 'Leslie','D', 671, '1985-06-10', 2200, NULL, 40),
+(7521, 'Wark',  'Cynthia','D',670, '1985-02-22', 1250, 50,  30);
+
+
+-- =========================================================
+-- SIMPLE QUERIES
+-- =========================================================
+SELECT * FROM EMPLOYEE;
+SELECT * FROM DEPARTMENT;
+SELECT * FROM JOB;
+SELECT * FROM LOCATION;
+
+SELECT First_Name, Last_Name, Salary, Comm FROM EMPLOYEE;
+
+SELECT 
+    Employee_ID AS [ID of the Employee],
+    Last_Name AS [Name of the Employee],
+    Department_ID AS Dep_ID
+FROM EMPLOYEE;
+
+SELECT First_Name, Last_Name, Salary * 12 AS Annual_Salary
+FROM EMPLOYEE;
+
+
+-- =========================================================
+-- WHERE CONDITIONS
+-- =========================================================
+SELECT * FROM EMPLOYEE WHERE Last_Name = 'Smith';
+SELECT * FROM EMPLOYEE WHERE Department_ID = 20;
+SELECT * FROM EMPLOYEE WHERE Salary BETWEEN 2000 AND 3000;
+SELECT * FROM EMPLOYEE WHERE Department_ID IN (10,20);
+SELECT * FROM EMPLOYEE WHERE Department_ID NOT IN (10,30);
+SELECT * FROM EMPLOYEE WHERE First_Name LIKE 'L%';
+SELECT * FROM EMPLOYEE WHERE First_Name LIKE 'L%' AND Last_Name LIKE '%E';
+SELECT * FROM EMPLOYEE WHERE First_Name LIKE 'J%' AND LEN(First_Name) = 4;
+SELECT * FROM EMPLOYEE WHERE Department_ID = 30 AND Salary > 2500;
+SELECT * FROM EMPLOYEE WHERE Comm IS NULL;
+
+
+-- =========================================================
+-- ORDER BY CLAUSE
+-- =========================================================
+SELECT Employee_ID, Last_Name FROM EMPLOYEE ORDER BY Employee_ID ASC;
+SELECT Employee_ID, First_Name, Last_Name, Salary FROM EMPLOYEE ORDER BY Salary DESC;
+SELECT * FROM EMPLOYEE ORDER BY Last_Name ASC;
+SELECT * FROM EMPLOYEE ORDER BY Last_Name ASC, Department_ID DESC;
+
+
+-- =========================================================
+-- GROUP BY & HAVING
+-- =========================================================
+SELECT Department_ID, MAX(Salary) Max_Salary, MIN(Salary) Min_Salary, AVG(Salary) Avg_Salary
+FROM EMPLOYEE
+GROUP BY Department_ID;
+
+SELECT Job_ID, MAX(Salary), MIN(Salary), AVG(Salary)
+FROM EMPLOYEE
+GROUP BY Job_ID;
+
+SELECT MONTH(Hire_Date) Join_Month, COUNT(*) Employees
+FROM EMPLOYEE
+GROUP BY MONTH(Hire_Date)
+ORDER BY Join_Month;
+
+SELECT YEAR(Hire_Date) Join_Year, MONTH(Hire_Date) Join_Month, COUNT(*) Employees
+FROM EMPLOYEE
+GROUP BY YEAR(Hire_Date), MONTH(Hire_Date)
+ORDER BY Join_Year, Join_Month;
+
+SELECT Department_ID
+FROM EMPLOYEE
+GROUP BY Department_ID
+HAVING COUNT(*) >= 4;
+
+SELECT COUNT(*) FROM EMPLOYEE WHERE MONTH(Hire_Date) = 2;
+SELECT COUNT(*) FROM EMPLOYEE WHERE MONTH(Hire_Date) IN (5,6);
+SELECT COUNT(*) FROM EMPLOYEE WHERE YEAR(Hire_Date) = 1985;
+
+SELECT MONTH(Hire_Date), COUNT(*)
+FROM EMPLOYEE
+WHERE YEAR(Hire_Date) = 1985
+GROUP BY MONTH(Hire_Date)
+ORDER BY MONTH(Hire_Date);
+
+SELECT COUNT(*)
+FROM EMPLOYEE
+WHERE YEAR(Hire_Date) = 1985 AND MONTH(Hire_Date) = 4;
+
+SELECT Department_ID
+FROM EMPLOYEE
+WHERE YEAR(Hire_Date) = 1985
+GROUP BY Department_ID
+HAVING COUNT(*) >= 3;
+
+
+-- =========================================================
+-- JOINS
+-- =========================================================
+SELECT e.First_Name, e.Last_Name, d.Name
+FROM EMPLOYEE e
+JOIN DEPARTMENT d ON e.Department_ID = d.Department_ID;
+
+SELECT e.First_Name, e.Last_Name, j.Designation
+FROM EMPLOYEE e
+JOIN JOB j ON e.Job_ID = j.Job_ID;
+
+SELECT e.First_Name, d.Name, l.City
+FROM EMPLOYEE e
+JOIN DEPARTMENT d ON e.Department_ID = d.Department_ID
+JOIN LOCATION l ON d.Location_ID = l.Location_ID;
+
+SELECT d.Name, COUNT(e.Employee_ID) Employees
+FROM DEPARTMENT d
+LEFT JOIN EMPLOYEE e ON d.Department_ID = e.Department_ID
+GROUP BY d.Name;
+
+SELECT COUNT(*)
+FROM EMPLOYEE e
+JOIN DEPARTMENT d ON e.Department_ID = d.Department_ID
+WHERE d.Name = 'Sales';
+
+SELECT d.Name
+FROM DEPARTMENT d
+JOIN EMPLOYEE e ON d.Department_ID = e.Department_ID
+GROUP BY d.Name
+HAVING COUNT(*) >= 3
+ORDER BY d.Name;
+
+SELECT COUNT(*)
+FROM EMPLOYEE e
+JOIN DEPARTMENT d ON e.Department_ID = d.Department_ID
+JOIN LOCATION l ON d.Location_ID = l.Location_ID
+WHERE l.City = 'Dallas';
+
+SELECT *
+FROM EMPLOYEE e
+JOIN DEPARTMENT d ON e.Department_ID = d.Department_ID
+WHERE d.Name IN ('Sales','Operations');
+
+
+-- =========================================================
+-- CONDITIONAL STATEMENT (CASE)
+-- =========================================================
+SELECT *,
+CASE
+    WHEN Salary >= 8000 THEN 'Grade A'
+    WHEN Salary >= 3000 THEN 'Grade B'
+    WHEN Salary >= 2000 THEN 'Grade C'
+    ELSE 'Grade D'
+END AS Salary_Grade
+FROM EMPLOYEE;
+
+SELECT Salary_Grade, COUNT(*)
+FROM (
+    SELECT
+    CASE
+        WHEN Salary >= 8000 THEN 'Grade A'
+        WHEN Salary >= 3000 THEN 'Grade B'
+        WHEN Salary >= 2000 THEN 'Grade C'
+        ELSE 'Grade D'
+    END AS Salary_Grade
+    FROM EMPLOYEE
+) t
+GROUP BY Salary_Grade;
+
+
+-- =========================================================
+-- SUBQUERIES
+-- =========================================================
+SELECT * FROM EMPLOYEE
+WHERE Salary = (SELECT MAX(Salary) FROM EMPLOYEE);
+
+SELECT * FROM EMPLOYEE
+WHERE Department_ID = (SELECT Department_ID FROM DEPARTMENT WHERE Name='Sales');
+
+SELECT * FROM EMPLOYEE
+WHERE Job_ID = (SELECT Job_ID FROM JOB WHERE Designation='Clerk');
+
+SELECT * FROM EMPLOYEE
+WHERE Department_ID IN (
+    SELECT Department_ID
+    FROM DEPARTMENT
+    WHERE Location_ID = (
+        SELECT Location_ID FROM LOCATION WHERE City='Boston'
+    )
+);
+
+UPDATE EMPLOYEE
+SET Salary = Salary * 1.10
+WHERE Job_ID = (SELECT Job_ID FROM JOB WHERE Designation='Clerk');
+
+SELECT *
+FROM (
+    SELECT *, DENSE_RANK() OVER (ORDER BY Salary DESC) rnk
+    FROM EMPLOYEE
+) t
+WHERE rnk = 2;
+
+SELECT *
+FROM EMPLOYEE
+WHERE Salary > ALL (
+    SELECT Salary FROM EMPLOYEE WHERE Department_ID = 30
+);
+
+SELECT d.Name
+FROM DEPARTMENT d
+LEFT JOIN EMPLOYEE e ON d.Department_ID = e.Department_ID
+WHERE e.Employee_ID IS NULL;
+
+SELECT *
+FROM EMPLOYEE e
+WHERE Salary > (
+    SELECT AVG(Salary)
+    FROM EMPLOYEE
+    WHERE Department_ID = e.Department_ID
+);
